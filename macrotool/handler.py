@@ -5,8 +5,15 @@ from time import sleep
 
 from .data import ActionType, HotKey
 class MacroManager():
+    """The MacroManager handles keyboard inputs and manages macros
+    """
 
-    def __init__(self, terminal_command):
+    def __init__(self, terminal_command: str):
+        """Creates and starts a macro monitor with the given terminal command
+
+        Args:
+            terminal_command (str): The command to launch a terminal on the given system
+        """
         # TODO: Read Macros from json
         self.macros = {}
         self.terminal_cmd = terminal_command
@@ -30,7 +37,7 @@ class MacroManager():
     
 
     def edit_hotkey(self):
-        # TODO Display "Press you hotkey to edit it"
+        # TODO Display "Press your hotkey to edit it"
         sleep(0.5)
         hk = keyboard.read_hotkey()
         print(hk)
@@ -55,19 +62,25 @@ class MacroManager():
     
 
     def launch_programm(self, name_and_args: str):
+        # TODO: Test
         args = shlex.split(name_and_args, posix=False)
         subprocess.Popen(args, creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_BREAKAWAY_FROM_JOB)
 
 
     def launch_terminal(self, command: str):
         # TODO: Check if shell=True needs to be used
+        # TODO: Test
         args = [self.terminal_cmd]
         args.append(command)
         subprocess.Popen(args, creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_BREAKAWAY_FROM_JOB)
 
 
-    # TODO: HINT: Look at keyboard.key_to_scan_codes
     def hook_callback(self, event: keyboard.KeyboardEvent):
+        """Callback hook for the keyboard library, handles all keyevent and detects key combinations
+
+        Args:
+            event (keyboard.KeyboardEvent): The event that triggered the hook
+        """
         if event.event_type == "down":
             if event.scan_code not in self.keys_down:
                 # suppress modified keys (E.g. shift+1 gets reported as ! on a german keyboard)
@@ -94,6 +107,11 @@ class MacroManager():
 
 
     def handle_combination(self, key_combination: str):
+        """Handles the given key combination
+
+        Args:
+            key_combination (str): _description_
+        """
         print(key_combination)
         if self.recordmode:
             self.recordmode = False
@@ -111,14 +129,33 @@ class MacroManager():
         if key_combination == "windows+ctrl+shift+e":
             # TODO: display message
             self.recordmode = True
+        
+        if key_combination in self.macros:
+            self.execute_macro(key_combination)
 
 
 
     def get_scancode_name(self, code) -> str:
+        """Returns the name of the key with the given scancode
+
+        Args:
+            code : The scancode of the selected key
+
+        Returns:
+            str: The name of the given key
+        """
         return keyboard._os_keyboard.to_name[(code, ())][0]
 
 
     def parse_key_combination(self, keynames: list[str]) -> str:
+        """Parses a list of pressed keys into a readable key combination string
+
+        Args:
+            keynames (list[str]): A list of keys that were pressed
+
+        Returns:
+            str: A human readable key combination string
+        """
         key_combination = ""
 
         for name in ["windows", "ctrl", "shift", "alt"]:

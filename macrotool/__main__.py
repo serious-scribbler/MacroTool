@@ -1,2 +1,2 @@
-from .listener import *
+from .handler import *
 MacroManager("xfce4-terminal")
