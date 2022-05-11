@@ -53,7 +53,6 @@ class OverlayWindow():
             self.close_label.grid(row=0, column=1)
         
         
-
     def run(self):
         if self.autoclose:
             self.root.after(self.settings.overlay_duration, self.close)

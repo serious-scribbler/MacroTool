@@ -2,32 +2,31 @@ import keyboard
 import subprocess
 import shlex
 from time import sleep
-
-from .data import ActionType, HotKey
-
-# TODO: Implement settings
+from .data import ActionType, HotKey, Settings
+from .ui.overlay import create_notification_window
 class MacroManager():
     """The MacroManager handles keyboard inputs and manages macros
     """
 
-    def __init__(self, terminal_command: str):
-        """Creates and starts a macro monitor with the given terminal command
+    def __init__(self, settings: Settings):
+        """Creates and starts a macro monitor with the given settings
 
         Args:
-            terminal_command (str): The command to launch a terminal on the given system
+            terminal_command (settings): Contains Settings for terminal commands and notifications
         """
         # TODO: Read Macros from json
         self.macros = {}
-        self.terminal_cmd = terminal_command
+        self.settings = settings
         self.keys_down = set()
         self.keys_were_down = set()
         self.recordmode = False
         self.editmode = False
+        self.notification_processes: list[Process] = []
+        self.persistent_message: Process = None
         keyboard.hook(self.hook_callback)
         keyboard.wait("windows+control+shift+q")
 
     def record_hotkey(self):
-        # TODO: Display recording dialog
         sleep(4)
         print("Enter Hotkey")
         hk = keyboard.read_hotkey()
@@ -39,7 +38,6 @@ class MacroManager():
     
 
     def edit_hotkey(self):
-        # TODO Display "Press your hotkey to edit it"
         sleep(0.5)
         hk = keyboard.read_hotkey()
         print(hk)
@@ -49,17 +47,24 @@ class MacroManager():
             pass # TODO: open macro selection with old settings selected
 
     
+    def _kill_notification_processes(self):
+        for p in self.notification_processes:
+            p.join(timeout=0)
+            if not p.is_alive():
+                self.notification_processes.remove(p)
+
+    
     def execute_macro(self, hk: str):
         macro = self.macros[hk]
 
+        self._kill_notification_processes()
+        
         if macro.hk_type is ActionType.COMMAND:
-            # TODO: Display message (or maybe not?)
             self.launch_terminal(macro.value)
         elif macro.hk_type is ActionType.PROGRAMM:
-            # TODO: Display message
+            self._create_notification("Executed '" + macro.name + "'")
             self.launch_programm(macro.value)
         else:
-            # TODO: Display message (or maybe not?)
             keyboard.write(macro.value)
     
 
@@ -108,6 +113,22 @@ class MacroManager():
             self.handle_combination(key_combination)
 
 
+    def _create_notification(self, text: str):
+        prcs = create_notification_window(self.settings, True, text, y_offset=len(self.notification_processes))
+        self.notification_processes.append(prcs)
+
+
+    def _create_persistent_message(self, text: str):
+        prcs = create_notification_window(self.settings, False, text, y_offset=len(self.notification_processes))
+        self.persistent_message = prcs
+
+
+    def _hide_persistent_message(self):
+        self.persistent_message.terminate()
+        self.persistent_message.join()
+        self.persistent_message = None
+
+
     def handle_combination(self, key_combination: str):
         """Handles the given key combination
 
@@ -117,20 +138,22 @@ class MacroManager():
         print(key_combination)
         if self.recordmode:
             self.recordmode = False
-            # TODO: hide message, show config dialogue
+            self._hide_persistent_message()
+            # TODO: how config dialogue
 
 
         if self.editmode:
             self.editmode = False
-            # TODO: hide message, show config dialogue
+            self._hide_persistent_message()
+            # TODO: show config dialogue
 
         if key_combination == "windows+ctrl+shift+r":
-            # TODO: display message
+            self._create_persistent_message("Press and release a key combination\nto create a new macro")
             self.recordmode = True
         
         if key_combination == "windows+ctrl+shift+e":
-            # TODO: display message
-            self.recordmode = True
+            self._create_persistent_message("Press and release a key combination\nto edit the corresponding macro")
+            self.editmode = True
         
         if key_combination in self.macros:
             self.execute_macro(key_combination)
