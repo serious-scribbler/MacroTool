@@ -4,6 +4,8 @@ import shlex
 from time import sleep
 
 from .data import ActionType, HotKey
+
+# TODO: Implement settings
 class MacroManager():
     """The MacroManager handles keyboard inputs and manages macros
     """
