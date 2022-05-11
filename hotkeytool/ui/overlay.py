@@ -1,5 +1,28 @@
 import tkinter as tk
 from hotkeytool.data import Settings
+from multiprocessing import Process
+
+def create_notification_window(settings: Settings, autoclose:bool, text: str) -> Process:
+    """Launches a notification window in it's own process
+
+    Args:
+        settings (Settings): The application settings
+        autoclose (bool): Wether or not to autoclose the window
+        text (str): The notification text
+
+    Returns:
+        Process: _description_
+    """
+    p = Process(target=__create_notification, args=(settings, autoclose, text))
+    p.start()
+    return p
+
+
+def __create_notification(settings: Settings, autoclose: bool, text: str):
+    # Creates a notification overlay
+    window = TextOverlay(settings, autoclose, text)
+    window.run()
+
 class OverlayWindow():
     """The Base class for all overlay windows
     """
@@ -38,6 +61,7 @@ class OverlayWindow():
         self.content.pack(padx=10, pady=10)
         self.border.pack()
         self.root.mainloop()
+
 
     def close(self, *args):
         self.root.destroy()
