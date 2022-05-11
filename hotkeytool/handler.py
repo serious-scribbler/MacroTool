@@ -25,6 +25,9 @@ class MacroManager():
         self.persistent_message: Process = None
         keyboard.hook(self.hook_callback)
         keyboard.wait("windows+control+shift+q")
+        for p in self.notification_processes:
+            p.terminate()
+            p.join()
 
     def record_hotkey(self):
         sleep(4)
@@ -140,12 +143,15 @@ class MacroManager():
             self.recordmode = False
             self._hide_persistent_message()
             # TODO: how config dialogue
-
+            self._create_notification("Hotkey registered:\n'" + key_combination + "'")
+            return
 
         if self.editmode:
             self.editmode = False
             self._hide_persistent_message()
             # TODO: show config dialogue
+            self._create_notification("Hotkey registered:\n'" + key_combination + "'")
+            return
 
         if key_combination == "windows+ctrl+shift+r":
             self._create_persistent_message("Press and release a key combination\nto create a new macro")
