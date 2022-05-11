@@ -14,11 +14,13 @@ class OverlayWindow():
         self.root.lift() # Display the window above all other windows
         self.root.wm_attributes("-topmost", True) # Stay on top
         self.root.wm_attributes("-alpha", 0.8) # Opacity, requires compositor included in xfce4
-        self.border = tk.Frame(self.root, background="red", borderwidth=1)
+        self.border = tk.Frame(self.root, borderwidth=3, background="red")
+        self.content_padding = tk.Frame(self.border, borderwidth=0, background="grey12")
+        self.content = tk.Frame(self.content_padding, borderwidth=0, background="grey12")
 
         if not self.autoclose:
             self.close_label = tk.Label(
-                self.border,
+                self.content,
                 text=" X",
                 font=("Liberation Mono Bold", 18),
                 fg="red2",
@@ -32,6 +34,8 @@ class OverlayWindow():
     def run(self):
         if self.autoclose:
             self.root.after(self.settings.overlay_duration, self.close)
+        self.content_padding.pack()
+        self.content.pack(padx=10, pady=10)
         self.border.pack()
         self.root.mainloop()
 
@@ -45,7 +49,7 @@ class TextOverlay(OverlayWindow):
         super().__init__(settings, autoclose)
         self.text = text
         self.label = tk.Label(
-            self.border,
+            self.content,
             text=self.text,
             font=("Liberation Mono Bold", 18),
             fg="snow1",
