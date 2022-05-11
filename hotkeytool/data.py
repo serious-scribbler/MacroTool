@@ -25,3 +25,14 @@ class HotKey():
 
     name: str
     """This name is shown on screen, when the macro is executed"""
+
+@dataclass
+class Settings():
+    """Dataclass to hold the programm settings
+    """
+
+    terminal_command: str
+    """The command to open a terminal on the current system"""
+
+    overlay_duration: int
+    """The duration in ms for which self-closing overlays are displayed"""
