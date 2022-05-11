@@ -32,6 +32,8 @@ class ActionType(Enum):
 class HotKey():
     """Dataclass to represent hotkeys, the key itself is not included since HotKeys are stored in a map"""
 
+    key_combination: str
+
     hk_type: ActionType
     """The type of the current hotkey, view the docs for ActionType for more information"""
 
