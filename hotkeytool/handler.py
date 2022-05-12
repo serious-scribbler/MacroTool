@@ -1,9 +1,12 @@
 import keyboard
 import subprocess
 import shlex
+import platform
+import os
 from time import sleep
 from .data import ActionType, HotKey, Settings
 from .ui.overlay import create_notification_window
+from .ui.macroeditor import MacroEditor
 class MacroManager():
     """The MacroManager handles keyboard inputs and manages macros
     """
@@ -29,15 +32,13 @@ class MacroManager():
             p.terminate()
             p.join()
 
-    def record_hotkey(self):
-        sleep(4)
-        print("Enter Hotkey")
-        hk = keyboard.read_hotkey()
-        print(hk)
+    def record_hotkey(self, hk):
         if hk in self.macros:
-            print("Macro already exists!") # TODO: Display on screen
+            self.create_notification_window("This hotkey is already assigned!")
         else:
-            pass # TODO: Display macro action selection
+            new_hk = HotKey(key_combination=hk, hk_type=ActionType.MACRO, name="", value="")
+            me = MacroEditor(new_hk)
+            self.macros[hk] = new_hk 
     
 
     def edit_hotkey(self):
@@ -74,14 +75,29 @@ class MacroManager():
     def launch_programm(self, name_and_args: str):
         # TODO: Test
         args = shlex.split(name_and_args, posix=False)
+
+        if platform.system() == "Linux":
+            nix_args = ["nohup"]
+            nix_args.append(args)
+            subprocess.Popen(nix_args, preexec_fn=os.setpgrp)
+            return
+
         subprocess.Popen(args, creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_BREAKAWAY_FROM_JOB)
 
 
     def launch_terminal(self, command: str):
         # TODO: Check if shell=True needs to be used
         # TODO: Test
-        args = [self.terminal_cmd]
+        args = [self.settings.terminal_command]
         args.append(command)
+
+        if platform.system() == "Linux":
+            nix_args = ["nohup"]
+            nix_args.extend(args)
+            print(nix_args)
+            subprocess.Popen([*nix_args], preexec_fn=os.setpgrp, shell=True)
+            return
+
         subprocess.Popen(args, creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_BREAKAWAY_FROM_JOB)
 
 
@@ -142,8 +158,8 @@ class MacroManager():
         if self.recordmode:
             self.recordmode = False
             self._hide_persistent_message()
-            # TODO: how config dialogue
             self._create_notification("Hotkey registered:\n'" + key_combination + "'")
+            self.record_hotkey(key_combination)
             return
 
         if self.editmode:

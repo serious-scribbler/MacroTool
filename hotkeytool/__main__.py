@@ -7,6 +7,6 @@ from time import sleep
 # TODO: Implement the actual tool
 pos = get_primary_coordinates()
 print(pos)
-s = Settings("xfc4-terminal", 3000, pos[0], pos[1])
+s = Settings("xfc4-terminal -H -x", 3000, pos[0], pos[1])
 create_notification_window(s, True, "Hotkeytool started!")
 mm = MacroManager(s)
