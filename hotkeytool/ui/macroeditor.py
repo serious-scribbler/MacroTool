@@ -7,6 +7,7 @@ editor_font = "Liberation Mono Bold"
 class MacroEditor():
 
     def __init__(self, edit_macro: HotKey):
+        # TODO: Apply good looking theme
         self.root = tk.Tk()
         self.root.lift() # Display the window above all other windows
         self.root.wm_attributes("-topmost", True) # Stay on top

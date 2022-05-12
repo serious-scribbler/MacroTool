@@ -24,7 +24,7 @@ class MacroManager():
         self.keys_were_down = set()
         self.recordmode = False
         self.editmode = False
-        self.notification_processes: list[Process] = []
+        self.notification_processes: list[Process] = [] # TODO: disentangle -> create manager class
         self.persistent_message: Process = None
         keyboard.hook(self.hook_callback)
         keyboard.wait("windows+control+shift+q")
