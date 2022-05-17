@@ -78,8 +78,10 @@ class MacroManager():
 
         if platform.system() == "Linux":
             nix_args = ["nohup"]
-            nix_args.append(args)
-            subprocess.Popen(nix_args, preexec_fn=os.setpgrp)
+            nix_args.extend(args)
+            cmd = " ".join(nix_args)
+            print(cmd)
+            subprocess.Popen(cmd, preexec_fn=os.setpgrp, shell=True)
             return
 
         subprocess.Popen(args, creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_BREAKAWAY_FROM_JOB)
@@ -94,8 +96,11 @@ class MacroManager():
         if platform.system() == "Linux":
             nix_args = ["nohup"]
             nix_args.extend(args)
+            nix_args.append("; bash\"'")
             print(nix_args)
-            subprocess.Popen([*nix_args], preexec_fn=os.setpgrp, shell=True)
+            cmd = " ".join(nix_args)
+            print(cmd)
+            subprocess.Popen(cmd, preexec_fn=os.setpgrp, shell=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
             return
 
         subprocess.Popen(args, creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_BREAKAWAY_FROM_JOB)
